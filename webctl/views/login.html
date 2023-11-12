@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>防火墙后台管理页面登录</title>
+    <link rel="stylesheet" href="/public/css/login.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="login-wrapper">
+            <div class="header">Login</div>
+            <div class="form-wrapper">
+                <input type="text" name="username" placeholder="username" class="input-item" id="username" required>
+                <input type="password" name="password" placeholder="password" class="input-item" id="password" required>
+                <div class="btn" id="loginBtn" type="submit">Login</div>
+                <script>
+                    let LOGIIN_SUCCESS = 10000;
+                    // 登录成功
+                    let LOGIIN_FAIL = 10001;
+                    // 登录失败
+                    let ERROR_SERVER = 10002;
+                    // 服务器错误
+                    let ERROR_PARAM = 10003;
+                    let UNINIT_EMAIL = 10004;
+                    let INIT_SUCCESS = 10005;
+                    let ADD_FILTER_RULE_SUCCESS = 1006;
+                    const loginBtn = document.getElementById('loginBtn');
+
+                    loginBtn.addEventListener('click', () => {
+                        const username = document.getElementById('username').value;
+                        const password = document.getElementById('password').value;
+                        const data = {
+                            username: username,
+                            password: password,
+                        };
+                        fetch('/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: new URLSearchParams(data)
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.code === LOGIIN_SUCCESS) {
+                                    alert(data.msg);
+                                    window.location.href = "/";
+                                } else if (data.code === LOGIIN_FAIL) {
+                                    alert(data.msg);
+                                } else if (data.code === UNINIT_EMAIL) {
+                                    window.location.href = "/setEmail.html";
+                                }
+                            });
+                    });
+                </script>
+            </div>
+            <div class="msg">
+                forget your password?
+                <a href="#">find back</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+{
+  "files.associations": {
+    "SAM": "bat",
+    "kernel_api.h": "c",
+    "netfilter_ipv4.h": "c",
+    "time.h": "c",
+    "hook_func.h": "c"
+  }
+}

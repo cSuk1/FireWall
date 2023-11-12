@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./public/css/login.css">
+    <title>邮箱初始化</title>
+</head>
+
+<body class="d-flex vw-100 vh-100 align-items-center justify-content-center">
+    <div class="login-wrapper">
+        <div class="header">初始化邮箱</div>
+        <div class="form-wrapper">
+            <input type="email" name="email" placeholder="email" class="input-item" id="email" required>
+            <div class="btn" id="loginBtn" type="submit">提交</div>
+            <script>
+                let LOGIIN_SUCCESS = 10000;
+                // 登录成功
+                let LOGIIN_FAIL = 10001;
+                // 登录失败
+                let ERROR_SERVER = 10002;
+                // 服务器错误
+                let ERROR_PARAM = 10003;
+                let UNINIT_EMAIL = 10004;
+                let INIT_SUCCESS = 10005;
+                const loginBtn = document.getElementById('loginBtn');
+
+                loginBtn.addEventListener('click', () => {
+                    const email = document.getElementById('email').value;
+                    const data = {
+                        email: email,
+                    };
+                    fetch('/initlogin', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams(data)
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.code === INIT_SUCCESS) {
+                                alert(data.msg);
+                                window.location.href = "/";
+                            } else {
+                                alert(data.msg);
+                            }
+                        });
+                });
+            </script>
+        </div>
+</body>
+
+</html>
