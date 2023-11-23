@@ -1,5 +1,11 @@
 /**
- * 过滤规则维护函数
+ * @file filter_rule.c
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 过滤规则管理
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
  */
 #include "kernel_api.h"
 

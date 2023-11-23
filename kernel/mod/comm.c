@@ -1,5 +1,11 @@
 /**
- * 处理用户空间请求
+ * @file comm.c
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 与用户通信
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
  */
 #include "kernel_api.h"
 

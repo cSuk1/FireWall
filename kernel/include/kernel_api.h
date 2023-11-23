@@ -1,9 +1,17 @@
+/**
+ * @file kernel_api.h
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 内核接口
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
+ */
 #ifndef _NETLINK_API_H
 #define _NETLINK_API_H
 
 #include "dep.h"
 
-/* 用户层与内核层通用接口 */
 #define MAXRuleNameLen 32 // 规则名称最大长度
 
 /**

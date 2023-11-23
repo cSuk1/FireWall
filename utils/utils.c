@@ -1,3 +1,12 @@
+/**
+ * @file utils.c
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 工具函数
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
+ */
 #include "api.h"
 /**
  * @brief:一些转换的工具函数

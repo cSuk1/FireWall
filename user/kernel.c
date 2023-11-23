@@ -1,5 +1,11 @@
 /**
- * 对内核响应进行解析的一些函数
+ * @file kernel.c
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 解析内核响应
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
  */
 #include "call.h"
 

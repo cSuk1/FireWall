@@ -1,5 +1,11 @@
 /**
- * 钩子函数的注册
+ * @file kernel_main.c
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 钩子函数的注册
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
  */
 #include "kernel_api.h"
 #include "dep.h"

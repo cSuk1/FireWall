@@ -1,3 +1,12 @@
+/**
+ * @file dep.h
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 依赖
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
+ */
 #ifndef _DEP_H
 #define _DEP_H
 

@@ -1,7 +1,12 @@
 /**
- * netlink socket 相关
+ * @file nl_sock.c
+ * @author cSuk1 (652240843@qq.com)
+ * @brief netlink套接字
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
  */
-
 #include "kernel_api.h"
 
 // 创建一个套接字结构

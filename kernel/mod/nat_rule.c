@@ -1,5 +1,11 @@
 /**
- * nat规则维护相关函数
+ * @file nat_rule.c
+ * @author cSuk1 (652240843@qq.com)
+ * @brief nat规则
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
  */
 #include "kernel_api.h"
 

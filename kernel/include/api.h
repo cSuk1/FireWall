@@ -1,3 +1,12 @@
+/**
+ * @file api.h
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 接口
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
+ */
 #ifndef _API_APP_H
 #define _API_APP_H
 
