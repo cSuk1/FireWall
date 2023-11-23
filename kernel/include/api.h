@@ -154,22 +154,22 @@ struct UsrReq
     } msg;
 };
 
-/**
- * @brief:用户层与内核通信函数的声明
- */
-struct KernelResp addFtRule(struct ftrule *filter_rule); // 新增过滤规则
-struct KernelResp getAllFTRules(void);                   // 获取所有过滤规则
-struct KernelResp delFTRule(char name[]);                // 删除名为name的规则
-struct KernelResp addNATRule(struct natrule *nat_rule);  // 新增nat规则
-struct KernelResp getAllNATRules(void);                  // 获取所有nat规则
-struct KernelResp delNATRule(int seq);                   // 删除序号为seq的nat规则
+// /**
+//  * @brief:用户层与内核通信函数的声明
+//  */
+// struct KernelResp addFtRule(struct ftrule *filter_rule); // 新增过滤规则
+// struct KernelResp getAllFTRules(void);                   // 获取所有过滤规则
+// struct KernelResp delFTRule(char name[]);                // 删除名为name的规则
+// struct KernelResp addNATRule(struct natrule *nat_rule);  // 新增nat规则
+// struct KernelResp getAllNATRules(void);                  // 获取所有nat规则
+// struct KernelResp delNATRule(int seq);                   // 删除序号为seq的nat规则
 
-/**
- * @brief:格式转换的工具函数
- */
-int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask);
-int IPint2IPstr(unsigned int ip, unsigned int mask, char *ipStr);
-int IPint2IPstrNoMask(unsigned int ip, char *ipStr);
-int IPint2IPstrWithPort(unsigned int ip, unsigned short port, char *ipStr);
+// /**
+//  * @brief:格式转换的工具函数
+//  */
+// int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask);
+// int IPint2IPstr(unsigned int ip, unsigned int mask, char *ipStr);
+// int IPint2IPstrNoMask(unsigned int ip, char *ipStr);
+// int IPint2IPstrWithPort(unsigned int ip, unsigned short port, char *ipStr);
 
 #endif

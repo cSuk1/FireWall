@@ -131,54 +131,49 @@ struct UsrReq
     } msg;
 };
 
-/**
- * 处理用户层发出的请求
- */
+// 处理用户请求
 int ProcUsrReq(unsigned int pid, void *msg, unsigned int len);
 
-/**
- * 新增过滤规则
- */
+// 过滤规则相关
 struct FTRule *addFTRule(char after[], struct FTRule rule);
-
-/**
- * 获取所有过滤规则
- */
 void *getAllFTRules(unsigned int *len);
-
-/**
- * 删除过滤规则
- */
 int delFTRule(char name[]);
-
-/**
- * 过滤规则匹配
- */
 int ftrule_match(struct sk_buff *skb, struct FTRule *rule);
 
-/**
- * 添加nat规则
- */
+// nat规则相关
 struct NATRule *addNATRule(struct NATRule rule);
-
-/**
- * 获取所有nat规则
- */
 void *getAllNATRules(unsigned int *len);
-
-/**
- * 删除nat规则
- */
 int delNATRule(unsigned int seq);
 
-/**
- * NETLINK_MYFW套接字发送消息给用户层
- */
-int NLFWSend(unsigned int pid, void *data, unsigned int len);
+// 连接会话表，根据会话表放行
+// 红黑树结构，用于在Linux内核中进行高效的插入、删除和搜索操作。
+#include <linux/rbtree.h>
 
-/**
- * netlink sock的初始化与释放
- */
+#define CONN_NEEDLOG 0x10
+#define CONN_MAX_SYM_NUM 3
+#define CONN_EXPIRES 7       // 新建连接或已有连接刷新时的存活时长（秒）
+#define CONN_NAT_TIMES 10    // NAT的超时时间倍率
+#define CONN_ROLL_INTERVAL 5 // 定期清理超时连接的时间间隔（秒）
+
+typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接，可比较
+
+struct connSess
+{
+    struct rb_node node;
+    conn_key_t key;        // 连接标识符
+    unsigned long expires; // 超时时间
+    u_int8_t protocol;     // 协议
+    struct NATRule nat;    // 该连接对应的NAT记录
+    int natType;           // NAT 转换类型
+};
+
+void conn_init(void);
+void conn_exit(void);
+struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
+struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
+
+// netlink相关
+int NLFWSend(unsigned int pid, void *data, unsigned int len);
 struct sock *netlink_init(void);
 void netlink_release(void);
 

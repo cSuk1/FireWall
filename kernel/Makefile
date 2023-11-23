@@ -1,6 +1,6 @@
 MODULE_NAME	= firewall
 
-SRC := mod/comm.c mod/filter_rule.c mod/nat_rule.c mod/nl_sock.c hook/hook_func.c kernel_main.c
+SRC := mod/comm.c mod/filter_rule.c mod/nat_rule.c mod/connect.c mod/nl_sock.c hook/hook_func.c kernel_main.c
 
 KDIR := /lib/modules/$(shell uname -r)/build
 

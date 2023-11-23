@@ -69,10 +69,10 @@ struct KernelResHdr
  */
 struct KernelResp
 {
-    int stat;                    // 状态码
-    void *data;                  // 回应包指针，记得free
-    struct KernelResHdr *header; // 不要free；指向data中的头部
-    void *body;                  // 不要free；指向data中的Body
+    int stat;                    // 响应状态码
+    void *data;                  // 响应数据
+    struct KernelResHdr *header; // 响应主体头部
+    void *body;                  // 响应主体
 };
 
 /**

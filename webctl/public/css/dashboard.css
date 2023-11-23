@@ -549,3 +549,14 @@ main {
   background-color: #48c;
   color: white!important;
 }
+
+.breadcrumb-nav-item {
+  text-decoration: none;
+  color: black;
+}
+
+.active-breadcrumb {
+  background-color: #0084d0;
+  border-radius: 5px;
+  padding: 1px 10px;
+}

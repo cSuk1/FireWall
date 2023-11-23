@@ -11,7 +11,8 @@ unsigned int DEFAULT_ACTION = NF_ACCEPT;
 /**
  * @brief:本地输入钩子，用于包过滤
  */
-unsigned int NfHookLocalIn(void *priv, struct sk_buff *skb, const struct nf_hook_state *state)
+unsigned int NfHookLocalIn(void *priv, struct sk_buff *skb,
+                           const struct nf_hook_state *state)
 {
     int flag;
     // 接收匹配到的规则

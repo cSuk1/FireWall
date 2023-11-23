@@ -255,32 +255,50 @@
                 </div>
                 <div id="collapseGroup">
                     <p>
-                        <a class="btn button-30" data-bs-toggle="collapse" href="#default_act" role="button"
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a class="breadcrumb-nav-item active-breadcrumb"
+                                    data-bs-toggle="collapse" href="#default_act" role="button" aria-expanded="false"
+                                    aria-controls="default_act">
+                                    默认行为
+                                </a></li>
+                            <li class="breadcrumb-item" aria-current="page"> <a class="breadcrumb-nav-item"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#rules_control"
+                                    aria-expanded="false" aria-controls="rules_control">
+                                    规则管理
+                                </a></li>
+                        </ol>
+                    </nav>
+                    <!-- <a class="btn button-30" data-bs-toggle="collapse" href="#default_act" role="button"
                             aria-expanded="false" aria-controls="default_act">
                             默认行为
                         </a>
                         <a class="btn button-30" type="button" data-bs-toggle="collapse"
                             data-bs-target="#rules_control" aria-expanded="false" aria-controls="rules_control">
                             规则管理
-                        </a>
+                        </a> -->
                     </p>
                     <script>
                         document.addEventListener('DOMContentLoaded', function () {
                             var collapseGroup = document.getElementById('collapseGroup');
                             var collapseItems = collapseGroup.getElementsByClassName('collapse');
-                            var triggers = collapseGroup.getElementsByClassName('btn');
+                            var triggers = collapseGroup.getElementsByClassName('breadcrumb-nav-item');
 
                             for (var i = 0; i < triggers.length; i++) {
-                                triggers[i].addEventListener('click', function () {
-                                    var target = document.querySelector(this.getAttribute('data-bs-target'));
-
-                                    for (var j = 0; j < collapseItems.length; j++) {
-                                        var collapse = collapseItems[j];
-                                        if (collapse !== target && collapse.classList.contains('show')) {
-                                            collapse.classList.remove('show');
+                                // 闭包来捕获循环变量的值
+                                (function (index) {
+                                    triggers[index].addEventListener('click', function () {
+                                        var target = document.querySelector(this.getAttribute('data-bs-target'));
+                                        triggers[index].classList.add('active-breadcrumb'); // 添加类名到 triggers[index] 元素
+                                        triggers[1-index].classList.remove('active-breadcrumb');
+                                        for (var j = 0; j < collapseItems.length; j++) {
+                                            var collapse = collapseItems[j];
+                                            if (collapse !== target && collapse.classList.contains('show')) {
+                                                collapse.classList.remove('show');
+                                            }
                                         }
-                                    }
-                                });
+                                    });
+                                })(i);
                             }
                         });
                     </script>
@@ -438,7 +456,7 @@
                     })
 
                 </script>
-                </main>
+            </main>
         </div>
     </div>
 

@@ -53,10 +53,10 @@ void ProcKernelResp(struct KernelResp rsp)
 
 int showRules(struct FTRule *rules, int len)
 {
-    printf("获取所有过滤规则成功");
+    printf("获取所有过滤规则成功\n");
 }
 
 int showNATRules(struct NATRule *rules, int len)
 {
-    printf("获取所有NAT规则成功");
+    printf("获取所有NAT规则成功\n");
 }
