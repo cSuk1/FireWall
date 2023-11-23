@@ -290,7 +290,7 @@
                                     triggers[index].addEventListener('click', function () {
                                         var target = document.querySelector(this.getAttribute('data-bs-target'));
                                         triggers[index].classList.add('active-breadcrumb'); // 添加类名到 triggers[index] 元素
-                                        triggers[1-index].classList.remove('active-breadcrumb');
+                                        triggers[1 - index].classList.remove('active-breadcrumb');
                                         for (var j = 0; j < collapseItems.length; j++) {
                                             var collapse = collapseItems[j];
                                             if (collapse !== target && collapse.classList.contains('show')) {
@@ -333,9 +333,11 @@
                                         var response = JSON.parse(xhr.responseText);
 
                                         // 根据请求结果设置复选框的选中状态
-                                        if (response.data = 1) {
+                                        if (response.data == 1) {
+                                            console.log(1);
                                             checkbox.checked = true;
                                         } else {
+                                            console.log(0);
                                             checkbox.checked = false;
                                         }
                                     }
@@ -343,7 +345,6 @@
                                 // 发送请求
                                 xhr.send();
                             });
-
 
                             // 添加事件监听器
                             checkbox.addEventListener('change', function () {

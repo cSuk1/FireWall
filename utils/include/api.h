@@ -1,3 +1,12 @@
+/**
+ * @file api.h
+ * @author cSuk1 (652240843@qq.com)
+ * @brief 接口
+ * @version 0.1
+ * @date 2023-11-23
+ *
+ *
+ */
 #ifndef _API_APP_H
 #define _API_APP_H
 
@@ -52,8 +61,12 @@
 #define RSP_MSG 11
 #define RSP_FTRULES 12  // body为FTRule[]
 #define RSP_FTLOGS 13   // body为IPlog[]
-#define RSP_NATRULES 14 // body为NATRecord[]
+#define RSP_NATRULES 14 // body为FTRule[]
 #define RSP_CONNLOGS 15 // body为ConnLog[]
+
+#define NAT_TYPE_NO 0
+#define NAT_TYPE_SRC 1
+#define NAT_TYPE_DEST 2
 
 /**
  * @brief:内核响应头
@@ -69,10 +82,10 @@ struct KernelResHdr
  */
 struct KernelResp
 {
-    int stat;                    // 响应状态码
-    void *data;                  // 响应数据
-    struct KernelResHdr *header; // 响应主体头部
-    void *body;                  // 响应主体
+    int stat;                    // 状态码
+    void *data;                  // 回应包指针，记得free
+    struct KernelResHdr *header; // 不要free；指向data中的头部
+    void *body;                  // 不要free；指向data中的Body
 };
 
 /**
@@ -98,6 +111,8 @@ struct natrule
     char sip[25];   // nat源地址
     char tip[25];   // nat地址
     char tport[15]; // 端口
+    unsigned short portMin;
+    unsigned short portMax;
 };
 
 /**
@@ -123,13 +138,13 @@ struct FTRule
  */
 struct NATRule
 {
-    unsigned int saddr; // 源IP
-    unsigned int smask; // 源IP的掩码
-    unsigned int daddr; // 转换后的IP
+    unsigned int saddr; // 记录：原始IP | 规则：原始源IP
+    unsigned int smask; // 记录：无作用  | 规则：原始源IP掩码
+    unsigned int daddr; // 记录：转换后的IP | 规则：NAT 源IP
 
-    unsigned short sport;   // 原始端口
-    unsigned short dport;   // 转换后的端口
-    unsigned short nowPort; // 当前使用的端口
+    unsigned short sport;   // 记录：原始端口 | 规则：最小端口范围
+    unsigned short dport;   // 记录：转换后的端口 | 规则：最大端口范围
+    unsigned short nowPort; // 记录：当前使用端口 | 规则：无作用
     struct NATRule *next;
 };
 
@@ -152,6 +167,17 @@ struct UsrReq
     } msg;
 };
 
+struct ConnLog
+{
+    unsigned int saddr;
+    unsigned int daddr;
+    unsigned short sport;
+    unsigned short dport;
+    u_int8_t protocol;
+    int natType;
+    struct NATRule nat; // NAT记录
+};
+
 /**
  * @brief:用户层与内核通信函数的声明
  */
@@ -161,8 +187,8 @@ struct KernelResp delFTRule(char name[]);                // 删除名为name的�
 struct KernelResp addNATRule(struct natrule *nat_rule);  // 新增nat规则
 struct KernelResp getAllNATRules(void);                  // 获取所有nat规则
 struct KernelResp delNATRule(int seq);                   // 删除序号为seq的nat规则
-struct KernelResp setDefaultAction(unsigned int action); // 设置默认策略
-
+struct KernelResp setDefaultAction(unsigned int action); // 设置默认行为
+struct KernelResp getAllConns(void);                     // 获取所有连接
 /**
  * @brief:格式转换的工具函数
  */

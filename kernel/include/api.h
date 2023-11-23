@@ -64,6 +64,10 @@
 #define RSP_NATRULES 14 // body为FTRule[]
 #define RSP_CONNLOGS 15 // body为ConnLog[]
 
+#define NAT_TYPE_NO 0
+#define NAT_TYPE_SRC 1
+#define NAT_TYPE_DEST 2
+
 /**
  * @brief:内核响应头
  */
@@ -163,22 +167,34 @@ struct UsrReq
     } msg;
 };
 
-// /**
-//  * @brief:用户层与内核通信函数的声明
-//  */
-// struct KernelResp addFtRule(struct ftrule *filter_rule); // 新增过滤规则
-// struct KernelResp getAllFTRules(void);                   // 获取所有过滤规则
-// struct KernelResp delFTRule(char name[]);                // 删除名为name的规则
-// struct KernelResp addNATRule(struct natrule *nat_rule);  // 新增nat规则
-// struct KernelResp getAllNATRules(void);                  // 获取所有nat规则
-// struct KernelResp delNATRule(int seq);                   // 删除序号为seq的nat规则
+struct ConnLog
+{
+    unsigned int saddr;
+    unsigned int daddr;
+    unsigned short sport;
+    unsigned short dport;
+    u_int8_t protocol;
+    int natType;
+    struct NATRule nat; // NAT记录
+};
 
-// /**
-//  * @brief:格式转换的工具函数
-//  */
-// int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask);
-// int IPint2IPstr(unsigned int ip, unsigned int mask, char *ipStr);
-// int IPint2IPstrNoMask(unsigned int ip, char *ipStr);
-// int IPint2IPstrWithPort(unsigned int ip, unsigned short port, char *ipStr);
+/**
+ * @brief:用户层与内核通信函数的声明
+ */
+struct KernelResp addFtRule(struct ftrule *filter_rule); // 新增过滤规则
+struct KernelResp getAllFTRules(void);                   // 获取所有过滤规则
+struct KernelResp delFTRule(char name[]);                // 删除名为name的规则
+struct KernelResp addNATRule(struct natrule *nat_rule);  // 新增nat规则
+struct KernelResp getAllNATRules(void);                  // 获取所有nat规则
+struct KernelResp delNATRule(int seq);                   // 删除序号为seq的nat规则
+struct KernelResp setDefaultAction(unsigned int action); // 设置默认行为
+struct KernelResp getAllConns(void);                     // 获取所有连接
+/**
+ * @brief:格式转换的工具函数
+ */
+int IPstr2IPint(const char *ipStr, unsigned int *ip, unsigned int *mask);
+int IPint2IPstr(unsigned int ip, unsigned int mask, char *ipStr);
+int IPint2IPstrNoMask(unsigned int ip, char *ipStr);
+int IPint2IPstrWithPort(unsigned int ip, unsigned short port, char *ipStr);
 
 #endif

@@ -65,6 +65,7 @@ static int mod_init(void)
     nf_register_net_hook(&init_net, &NF_HKForward);
     nf_register_net_hook(&init_net, &NF_HKPostRouting);
     netlink_init();
+    conn_init();
     return 0;
 }
 
@@ -79,6 +80,7 @@ static void mod_exit(void)
     nf_unregister_net_hook(&init_net, &NF_HKForward);
     nf_unregister_net_hook(&init_net, &NF_HKPostRouting);
     netlink_release();
+    conn_exit();
 }
 
 // 模块证书

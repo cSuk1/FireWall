@@ -122,5 +122,21 @@ router.get("/setEmail.html", function (req, res, next) {
   });
 });
 
+router.get("/conn.html", function (req, res, next) {
+  //获取当前文件所在的目录的绝对路径
+  let Path = path.resolve(__dirname, "..");
+  let token = req.signedCookies.token;
+  // 验证token
+  jwt.verify(token, key, (err, decoded) => {
+    if (err) {
+      console.log("Invalid token:", err.message);
+      res.sendFile(Path + "/views/login.html");
+    } else {
+      console.log("Decoded token:", decoded);
+      res.sendFile(Path + "/views/conn.html");
+    }
+  });
+});
+
 // 向外导出路由
 module.exports = router;

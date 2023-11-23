@@ -391,3 +391,20 @@ struct KernelResp setDefaultAction(unsigned int action)
     // 将用户请求发送给内核，与内核通信，获取内核响应
     return ComWithKernel(&req, sizeof(req));
 }
+
+/*******************************************************
+ * @brief Get the All Conns object
+ *
+ * @return struct KernelResp
+ * @author cSuk1 (652240843@qq.com)
+ * @date 2023-11-23
+ *******************************************************/
+struct KernelResp getAllConns()
+{
+    // 用户请求
+    struct UsrReq req;
+    // 设置请求类型
+    req.tp = REQ_GETAllCONNS;
+    // 将用户请求发送给内核，与内核通信，获取内核响应
+    return ComWithKernel(&req, sizeof(req));
+}

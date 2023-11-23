@@ -49,10 +49,10 @@
  */
 #define RSP_NULL 10
 #define RSP_MSG 11
-#define RSP_FTRULES 12  // body为FTRule[]
-#define RSP_FTLOGS 13   // body为IPlog[]
-#define RSP_NATRULES 14 // body为NATRecord[]
-#define RSP_CONNLOGS 15 // body为ConnLog[]
+#define RSP_FTRULES 12  // body为过滤规则
+#define RSP_FTLOGS 13   // body为日志
+#define RSP_NATRULES 14 // body为nat规则
+#define RSP_CONNLOGS 15 // body为连接
 
 /**
  * @brief:内核响应头
@@ -146,7 +146,7 @@ int ProcUsrReq(unsigned int pid, void *msg, unsigned int len);
 struct FTRule *addFTRule(char after[], struct FTRule rule);
 void *getAllFTRules(unsigned int *len);
 int delFTRule(char name[]);
-int ftrule_match(struct sk_buff *skb, struct FTRule *rule);
+int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_ACTION);
 
 // nat规则相关
 struct NATRule *addNATRule(struct NATRule rule);
@@ -163,7 +163,12 @@ int delNATRule(unsigned int seq);
 #define CONN_NAT_TIMES 10    // NAT的超时时间倍率
 #define CONN_ROLL_INTERVAL 5 // 定期清理超时连接的时间间隔（秒）
 
-typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接，可比较
+// nat类型
+#define NAT_TYPE_NO 0
+#define NAT_TYPE_SRC 1
+#define NAT_TYPE_DEST 2
+
+typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接
 
 struct connSess
 {
@@ -171,14 +176,30 @@ struct connSess
     conn_key_t key;        // 连接标识符
     unsigned long expires; // 超时时间
     u_int8_t protocol;     // 协议
+    u_int8_t needLog;      // 是否记录日志
     struct NATRule nat;    // 该连接对应的NAT记录
     int natType;           // NAT 转换类型
 };
+
+// 连接记录
+struct ConnLog
+{
+    unsigned int saddr;
+    unsigned int daddr;
+    unsigned short sport;
+    unsigned short dport;
+    u_int8_t protocol;
+    int natType;
+    struct NATRule nat; // NAT记录
+};
+
+#define timeFromNow(plus) (jiffies + ((plus) * HZ))
 
 void conn_init(void);
 void conn_exit(void);
 struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
 struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
+void *getAllConnections(unsigned int *len);
 
 // netlink相关
 int NLFWSend(unsigned int pid, void *data, unsigned int len);

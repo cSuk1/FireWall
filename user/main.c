@@ -27,7 +27,7 @@ void PrintUsage()
     printf("               del # del rule for filtering\n");
     printf("                --param: -n <name>\n");
     printf("               ls # list all rules for filtering\n");
-    printf("               default\n");
+    printf("               default ac/re\n");
     printf("          nat  add # add new nat rule\n");
     printf("                --param: -si <source ip/mask>\n");
     printf("                         -ti <nat ip>\n");
@@ -36,10 +36,8 @@ void PrintUsage()
     printf("                --param: -s <seq num>\n");
     printf("               ls # list all nat\n");
     printf("               default\n");
-    printf("          ls   rule # list all rules for filtering\n");
-    printf("               nat # list nat rules\n");
-    printf("               log # list log\n");
-    printf("               connect # list established connections\n");
+    printf("          ls   log # list log\n");
+    printf("               conn # list established connections\n");
     exit(0);
 }
 
@@ -253,10 +251,9 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
-        // 如果参数为nat
-        if (strcmp(argv[i], "nat") == 0)
+        else if (strcmp(argv[i], "nat") == 0)
         {
+            // 如果参数为nat
             if (i + 1 == argc)
             {
                 break;
@@ -348,6 +345,20 @@ int main(int argc, char *argv[])
                     ProcKernelResp(rsp);
                     exit(0);
                 }
+            }
+        }
+        else if (strcmp(argv[i], "ls") == 0)
+        {
+            // 如果参数为nat
+            if (i + 1 == argc)
+            {
+                break;
+            }
+            if (strcmp(argv[i + 1], "conn") == 0)
+            {
+                rsp = getAllConns();
+                ProcKernelResp(rsp);
+                exit(0);
             }
         }
     }

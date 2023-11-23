@@ -184,6 +184,19 @@ int ProcUsrReq(unsigned int pid, void *msg, unsigned int len)
             printk("[caixing fw] Set default action to NF_DROP.\n");
         }
         break;
+    case REQ_GETAllCONNS:
+        // 获取连接信息
+        mem = getAllConnections(&rsp_len);
+        if (mem == NULL)
+        {
+            printk(KERN_WARNING "[caixing fw] kernel get all connections fail.\n");
+            sendmsg(pid, "get all connections fail.");
+            break;
+        }
+        // 将获取的所有规则发送给用户
+        NLFWSend(pid, mem, rsp_len);
+        kfree(mem);
+        break;
     default:
         rsp_len = sendmsg(pid, "unexcepted req type");
         break;

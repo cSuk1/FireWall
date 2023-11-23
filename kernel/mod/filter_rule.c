@@ -156,9 +156,11 @@ int delFTRule(char name[])
  * @param:匹配到的过滤规则（如果有）
  * @return:1-匹配到 0未匹配
  */
-int ftrule_match(struct sk_buff *skb, struct FTRule *rule)
+int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_ACTION)
 {
+    int islog = 1;
     int ismatch = -1;
+    struct connSess *node;
     // 用于遍历规则链表
     struct FTRule *tmp;
     // 获取ip头
@@ -188,12 +190,23 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule)
         dst_port = ntohs(udpHeader->dest);
         break;
         // ICMP
-    case IPPROTO_ICMP:
-        // 默认情况
+    // case IPPROTO_ICMP:
+    // 默认情况
     default:
         src_port = 0;
         dst_port = 0;
         break;
+    }
+    // 先检查会话表是否有连接存在
+    node = hasConn(sip, tip, src_port, dst_port);
+    if (node != NULL)
+    {
+        return NF_ACCEPT;
+    }
+    node = hasConn(tip, sip, dst_port, src_port);
+    if (node != NULL)
+    {
+        return NF_ACCEPT;
     }
     // 遍历规则链表
     // 上锁
@@ -210,6 +223,8 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule)
             if (tmp->act == NF_ACCEPT)
             {
                 ismatch = 1;
+                // 添加连接
+                addConn(sip, tip, src_port, dst_port, proto, islog);
             }
             else
             {
@@ -223,5 +238,10 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule)
     }
     // 解锁
     read_unlock(&FTRuleLock);
+    if (ismatch == -1 && DEFAULT_ACTION == NF_ACCEPT)
+    {
+        // 添加连接
+        addConn(sip, tip, src_port, dst_port, proto, islog);
+    }
     return ismatch;
 }
