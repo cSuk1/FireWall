@@ -85,6 +85,6 @@ static void mod_exit(void)
 
 // 模块证书
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("cx");
+MODULE_AUTHOR("caixing");
 module_init(mod_init);
 module_exit(mod_exit);

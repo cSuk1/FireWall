@@ -54,6 +54,8 @@
 #define RSP_NATRULES 14 // body为nat规则
 #define RSP_CONNLOGS 15 // body为连接
 
+#define MAX_RATE 300 // 数据包到达的最大速率
+
 /**
  * @brief:内核响应头
  */
@@ -143,10 +145,19 @@ struct UsrReq
 int ProcUsrReq(unsigned int pid, void *msg, unsigned int len);
 
 // 过滤规则相关
+struct filter_node
+{
+    struct rb_node node;
+    struct FTRule *rule;
+    struct filter_node *left;
+    struct filter_node *right;
+};
+
 struct FTRule *addFTRule(char after[], struct FTRule rule);
 void *getAllFTRules(unsigned int *len);
 int delFTRule(char name[]);
 int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_ACTION);
+void ban_ip(unsigned int key);
 
 // nat规则相关
 struct NATRule *addNATRule(struct NATRule rule);
@@ -168,20 +179,21 @@ int delNATRule(unsigned int seq);
 #define NAT_TYPE_SRC 1
 #define NAT_TYPE_DEST 2
 
-typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接
+typedef unsigned int conn_key_t[CONN_MAX_SYM_NUM]; // 连接标识符，用于标明一个连接，可比较
 
 struct connSess
 {
     struct rb_node node;
     conn_key_t key;        // 连接标识符
     unsigned long expires; // 超时时间
+    u_int8_t syn;          // 记录syn数
+    u_int8_t rate;         // 记录数据包到达的速率
     u_int8_t protocol;     // 协议
     u_int8_t needLog;      // 是否记录日志
     struct NATRule nat;    // 该连接对应的NAT记录
     int natType;           // NAT 转换类型
 };
 
-// 连接记录
 struct ConnLog
 {
     unsigned int saddr;
@@ -197,9 +209,10 @@ struct ConnLog
 
 void conn_init(void);
 void conn_exit(void);
-struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport);
-struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log);
+struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t issyn);
+struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log, u_int8_t issyn);
 void *getAllConnections(unsigned int *len);
+void delConn(struct connSess *node);
 
 // netlink相关
 int NLFWSend(unsigned int pid, void *data, unsigned int len);

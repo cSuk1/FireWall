@@ -114,7 +114,7 @@ int ProcUsrReq(unsigned int pid, void *msg, unsigned int len)
             sendmsg(pid, "no rule named this.\n");
             break;
         }
-        printk("[caixing fw] delete rule success: %s.\n", req->ruleName);
+        printk("[caixing fw] delete rule successfully: %s.\n", req->ruleName);
         rsp_hdr->arrayLen = cnt;
         NLFWSend(pid, rsp_hdr, rsp_len);
         // 释放空间

@@ -138,6 +138,24 @@ void eraseNode(struct rb_root *root, struct connSess *node)
 }
 
 /*******************************************************
+ * @brief 删除连接
+ *
+ * @param node
+ * @author cSuk1 (652240843@qq.com)
+ * @date 2023-12-02
+ *******************************************************/
+void delConn(struct connSess *node)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+    read_lock(&connLock);
+    eraseNode(&connRoot, node);
+    read_unlock(&connLock);
+}
+
+/*******************************************************
  * @brief 添加一条连接
  *
  * @param sip
@@ -150,7 +168,7 @@ void eraseNode(struct rb_root *root, struct connSess *node)
  * @author cSuk1 (652240843@qq.com)
  * @date 2023-11-23
  *******************************************************/
-struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log)
+struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log, u_int8_t issyn)
 {
     // 初始化
     struct connSess *node = (struct connSess *)kzalloc(sizeof(struct connSess), GFP_ATOMIC);
@@ -162,6 +180,9 @@ struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short spor
     // 初始化节点
     node->needLog = log;
     node->protocol = proto;
+    node->syn = issyn;
+    node->rate = 1;
+    // printk("[issyn]%u\n", node->syn);
     node->expires = timeFromNow(CONN_EXPIRES); // 设置超时时间
     node->natType = NAT_TYPE_NO;
     // 构建标识符
@@ -213,7 +234,7 @@ void addConnExpires(struct connSess *node, unsigned int plus)
  * @author cSuk1 (652240843@qq.com)
  * @date 2023-11-23
  *******************************************************/
-struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport)
+struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t issyn)
 {
     conn_key_t key;
     struct connSess *node = NULL;
@@ -223,8 +244,18 @@ struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short spor
     key[2] = ((((unsigned int)sport) << 16) | ((unsigned int)dport));
     // 查找节点
     node = searchNode(&connRoot, key);
-    addConnExpires(node, CONN_EXPIRES); // 重新设置超时时间
-    return node;
+    if (node != NULL)
+    {
+        node->syn += issyn;
+        node->rate += 1;
+        // printk("[issyn]%u\n", node->syn);
+        addConnExpires(node, CONN_EXPIRES); // 重新设置超时时间
+        return node;
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 /*******************************************************
@@ -306,11 +337,19 @@ int rollConn(void)
         for (node = rb_first(&connRoot); node; node = rb_next(node))
         {
             needDel = rb_entry(node, struct connSess, node);
-            if (isTimeout(needDel->expires))
+            if (isTimeout(needDel->expires) || needDel->rate > MAX_RATE)
             {
                 // 删除
+                if (needDel->rate > MAX_RATE)
+                {
+                    ban_ip(needDel->key[0]);
+                }
                 hasChange = 1;
                 break;
+            }
+            else
+            {
+                needDel->rate = 0;
             }
         }
         read_unlock(&connLock);

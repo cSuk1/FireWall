@@ -68,9 +68,92 @@ void printLine(int len)
     printf("\n");
 }
 
+int showOneRule(struct FTRule rule)
+{
+    char saddr[25], daddr[25], sport[13], dport[13], proto[6], action[8], log[5];
+    // ip
+    IPint2IPstr(rule.saddr, rule.smask, saddr);
+    IPint2IPstr(rule.taddr, rule.tmask, daddr);
+    // port
+    if (rule.sport == 0xFFFFu)
+        strcpy(sport, "any");
+    else if ((rule.sport >> 16) == (rule.sport & 0xFFFFu))
+        sprintf(sport, "only %u", (rule.sport >> 16));
+    else
+        sprintf(sport, "%u~%u", (rule.sport >> 16), (rule.sport & 0xFFFFu));
+    if (rule.tport == 0xFFFFu)
+        strcpy(dport, "any");
+    else if ((rule.tport >> 16) == (rule.tport & 0xFFFFu))
+        sprintf(dport, "only %u", (rule.tport >> 16));
+    else
+        sprintf(dport, "%u~%u", (rule.tport >> 16), (rule.tport & 0xFFFFu));
+    // action
+    if (rule.act == NF_ACCEPT)
+    {
+        sprintf(action, "accept");
+    }
+    else if (rule.act == NF_DROP)
+    {
+        sprintf(action, "drop");
+    }
+    else
+    {
+        sprintf(action, "other");
+    }
+    // protocol
+    if (rule.protocol == IPPROTO_TCP)
+    {
+        sprintf(proto, "TCP");
+    }
+    else if (rule.protocol == IPPROTO_UDP)
+    {
+        sprintf(proto, "UDP");
+    }
+    else if (rule.protocol == IPPROTO_ICMP)
+    {
+        sprintf(proto, "ICMP");
+    }
+    else if (rule.protocol == IPPROTO_IP)
+    {
+        sprintf(proto, "IP");
+    }
+    else
+    {
+        sprintf(proto, "other");
+    }
+    // log
+    if (rule.islog)
+    {
+        sprintf(log, "yes");
+    }
+    else
+    {
+        sprintf(log, "no");
+    }
+    // print
+    printf("| %-*s | %-18s | %-18s | %-11s | %-11s | %-8s | %-6s | %-3s |\n", MAXRuleNameLen,
+           rule.name, saddr, daddr, sport, dport, proto, action, log);
+    printLine(111);
+}
+
 int showRules(struct FTRule *rules, int len)
 {
-    printf("获取所有过滤规则成功\n");
+    int i;
+    if (len == 0)
+    {
+        printf("No rules now.\n");
+        return 0;
+    }
+    // printf("rule num: %d\n", len);
+    printLine(111);
+    printf("| %-*s | %-18s | %-18s | %-11s | %-11s | %-8s | %-6s | %-3s |\n", MAXRuleNameLen,
+           "name", "source ip", "target ip", "source port", "target port", "protocol", "action", "log");
+    printLine(111);
+    for (i = 0; i < len; i++)
+    {
+        showOneRule(rules[i]);
+    }
+    return 0;
 }
 
 int showNATRules(struct NATRule *rules, int len)

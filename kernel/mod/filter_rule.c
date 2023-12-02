@@ -9,6 +9,8 @@
  */
 #include "kernel_api.h"
 
+extern struct rb_root connRoot;
+
 // 规则链表
 static struct FTRule *FTRuleHd = NULL;
 // 规则链表锁，保证并发安全
@@ -33,6 +35,11 @@ struct FTRule *addFTRule(char after[], struct FTRule rule)
         return NULL;
     }
     memcpy(new_rule, &rule, sizeof(struct FTRule));
+    if (new_rule == NULL)
+    {
+        kfree(new_rule);
+        return NULL;
+    }
     // 新增规则至规则链表
     write_lock(&FTRuleLock);
     // if (rule.action != NF_ACCEPT)
@@ -173,6 +180,7 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_
     unsigned int tip = ntohl(hdr->daddr);
     // 源端口和目的端口
     unsigned short src_port, dst_port;
+    unsigned int issyn = 0;
     // 协议
     u_int8_t proto = hdr->protocol;
     switch (proto)
@@ -182,6 +190,8 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_
         tcpHeader = (struct tcphdr *)(skb->data + (hdr->ihl * 4));
         src_port = ntohs(tcpHeader->source);
         dst_port = ntohs(tcpHeader->dest);
+        // 检查是否存在syn位
+        issyn = (tcpHeader->syn) ? 1 : 0;
         break;
         // 传输层协议为udp
     case IPPROTO_UDP:
@@ -198,14 +208,34 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_
         break;
     }
     // 先检查会话表是否有连接存在
-    node = hasConn(sip, tip, src_port, dst_port);
+    node = hasConn(sip, tip, src_port, dst_port, issyn);
     if (node != NULL)
     {
+        // 如果收到多次syn
+        if (node->syn == 10)
+        {
+            ban_ip(sip);
+            return NF_DROP;
+        }
+        else if (node->syn > 10)
+        {
+            return NF_DROP;
+        }
         return NF_ACCEPT;
     }
-    node = hasConn(tip, sip, dst_port, src_port);
+    node = hasConn(tip, sip, dst_port, src_port, issyn);
     if (node != NULL)
     {
+        // 如果收到多次syn
+        if (node->syn == 10)
+        {
+            ban_ip(sip);
+            return NF_DROP;
+        }
+        else if (node->syn > 10)
+        {
+            return NF_DROP;
+        }
         return NF_ACCEPT;
     }
     // 遍历规则链表
@@ -214,8 +244,9 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_
     for (tmp = FTRuleHd; tmp != NULL; tmp = tmp->next)
     {
         // 匹配到一条规则
-        if (((sip & tmp->smask) == (tmp->saddr & tmp->smask) || tmp->saddr == 0) &&
-            ((tip & tmp->tmask) == (tmp->taddr & tmp->tmask)) &&
+        if (((sip & tmp->smask) == (tmp->saddr & tmp->smask) || tmp->saddr == 0 || (sip) == (tmp->saddr)) &&
+            (((tip) == (tmp->taddr)) ||
+             ((tip & tmp->tmask) == (tmp->taddr & tmp->tmask))) &&
             (src_port >= ((unsigned short)(tmp->sport >> 16)) && src_port <= ((unsigned short)(tmp->sport & 0xFFFFu))) &&
             (dst_port >= ((unsigned short)(tmp->tport >> 16)) && dst_port <= ((unsigned short)(tmp->tport & 0xFFFFu))) &&
             (tmp->protocol == IPPROTO_IP || tmp->protocol == proto))
@@ -224,7 +255,7 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_
             {
                 ismatch = 1;
                 // 添加连接
-                addConn(sip, tip, src_port, dst_port, proto, islog);
+                addConn(sip, tip, src_port, dst_port, proto, islog, issyn);
             }
             else
             {
@@ -241,7 +272,42 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_
     if (ismatch == -1 && DEFAULT_ACTION == NF_ACCEPT)
     {
         // 添加连接
-        addConn(sip, tip, src_port, dst_port, proto, islog);
+        addConn(sip, tip, src_port, dst_port, proto, islog, issyn);
     }
     return ismatch;
+}
+
+/*******************************************************
+ * @brief 将该ip拉入黑名单
+ *
+ * @param key
+ * @author cSuk1 (652240843@qq.com)
+ * @date 2023-12-02
+ *******************************************************/
+void ban_ip(unsigned int key)
+{
+    unsigned int i, ips[4];
+    char ipstr[16];
+    char cmd[256];
+    char *argv[4];
+    static char *envp[] = {
+        "HOME=/",
+        "TERM=linux",
+        "PATH=/sbin:/bin:/usr/sbin:/usr/bin",
+        NULL};
+    for (i = 0; i < 4; i++)
+    {
+        ips[i] = ((key >> ((3 - i) * 8)) & 0xFFU);
+    }
+    sprintf(ipstr, "%u.%u.%u.%u", ips[0], ips[1], ips[2], ips[3]);
+    sprintf(cmd, "/home/caixing/SecDev/firewall/main rule add -n dos -si %s/24 -sp any -ti 192.168.219.128/24 -tp any -p any -a re -l n", ipstr);
+    printk("[fwdos] Too many packets arrived from %s\n", ipstr);
+    argv[0] = "/bin/sh";
+    argv[1] = "-c";
+    argv[2] = cmd;
+    argv[3] = NULL;
+    if (call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC) < 0)
+    {
+        printk(KERN_ERR "Failed to execute shell command\n");
+    }
 }
