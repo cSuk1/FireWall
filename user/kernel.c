@@ -156,10 +156,10 @@ int showRules(struct FTRule *rules, int len)
     return 0;
 }
 
-int showNATRules(struct NATRule *rules, int len)
-{
-    printf("获取所有NAT规则成功\n");
-}
+// int showNATRules(struct NATRule *rules, int len)
+// {
+//     printf("获取所有NAT规则成功\n");
+// }
 
 int showOneConn(struct ConnLog log)
 {
@@ -214,6 +214,28 @@ int showConns(struct ConnLog *logs, int len)
     for (i = 0; i < len; i++)
     {
         showOneConn(logs[i]);
+    }
+    return 0;
+}
+
+int showNATRules(struct NATRule *rules, int len)
+{
+    int i, col = 66;
+    char saddr[25], daddr[25];
+    if (len == 0)
+    {
+        printf("No NAT rules now.\n");
+        return 0;
+    }
+    printLine(col);
+    printf("| seq | %18s |->| %-18s | %-11s |\n", "source ip", "NAT ip", "NAT port");
+    printLine(col);
+    for (i = 0; i < len; i++)
+    {
+        IPint2IPstr(rules[i].saddr, rules[i].smask, saddr);
+        IPint2IPstrNoMask(rules[i].daddr, daddr);
+        printf("| %3d | %18s |->| %-18s | %5u~%-5u |\n", i, saddr, daddr, rules[i].sport, rules[i].dport);
+        printLine(col);
     }
     return 0;
 }

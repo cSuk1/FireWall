@@ -212,7 +212,14 @@ void conn_exit(void);
 struct connSess *hasConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t issyn);
 struct connSess *addConn(unsigned int sip, unsigned int dip, unsigned short sport, unsigned short dport, u_int8_t proto, u_int8_t log, u_int8_t issyn);
 void *getAllConnections(unsigned int *len);
+void addConnExpires(struct connSess *node, unsigned int plus);
 void delConn(struct connSess *node);
+
+// nat操作
+int setConnNAT(struct connSess *node, struct NATRule record, int natType);
+struct NATRule *matchNATRule(unsigned int sip, unsigned int dip, int *isMatch);
+unsigned short getNewNATPort(struct NATRule rule);
+struct NATRule genNATRule(unsigned int preIP, unsigned int afterIP, unsigned short prePort, unsigned short afterPort);
 
 // netlink相关
 int NLFWSend(unsigned int pid, void *data, unsigned int len);

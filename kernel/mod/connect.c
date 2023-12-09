@@ -317,6 +317,70 @@ void *getAllConnections(unsigned int *len)
     return mem;
 }
 
+/*******************************************************
+ * @brief 设置会话的nat
+ *
+ * @param node
+ * @param record
+ * @param natType
+ * @return int
+ * @author Andromeda (ech0uname@qq.com)
+ * @date 2023-12-09
+ *******************************************************/
+int setConnNAT(struct connSess *node, struct NATRule rule, int natType)
+{
+    if (node == NULL)
+        return 0;
+    write_lock(&connLock);
+    node->natType = natType;
+    node->nat = rule;
+    write_unlock(&connLock);
+    return 1;
+}
+
+/*******************************************************
+ * @brief 获取一个可用的nat端口
+ *
+ * @param rule
+ * @return unsigned short
+ * @author Andromeda (ech0uname@qq.com)
+ * @date 2023-12-09
+ *******************************************************/
+unsigned short getNewNATPort(struct NATRule rule)
+{
+    struct rb_node *node;
+    struct connSess *now;
+    unsigned short port, inUse;
+    // 遍历
+    if (rule.nowPort > rule.dport || rule.nowPort < rule.sport)
+        rule.nowPort = rule.dport;
+    for (port = rule.nowPort + 1; port != rule.nowPort; port++)
+    {
+        if (port > rule.dport || port < rule.sport)
+            port = rule.sport;
+        read_lock(&connLock);
+        for (node = rb_first(&connRoot), inUse = 0; node; node = rb_next(node))
+        {
+            now = rb_entry(node, struct connSess, node);
+            if (now->natType != NAT_TYPE_SRC)
+                continue;
+            if (now->nat.daddr != rule.daddr)
+                continue;
+            if (port == now->nat.dport)
+            {
+                inUse = 1;
+                break;
+            }
+        }
+        read_unlock(&connLock);
+        if (!inUse)
+        {
+            return port;
+        }
+    }
+    return 0;
+}
+
 // 对超时连接的处理
 /*******************************************************
  * @brief 删除超时连接
@@ -337,15 +401,14 @@ int rollConn(void)
         for (node = rb_first(&connRoot); node; node = rb_next(node))
         {
             needDel = rb_entry(node, struct connSess, node);
-            if (isTimeout(needDel->expires) || needDel->rate > MAX_RATE)
+            if (isTimeout(needDel->expires) /*|| needDel->rate > MAX_RATE*/)
             {
                 // 删除
-                if (needDel->rate > MAX_RATE)
-                {
-                    ban_ip(needDel->key[0]);
-                }
+                // if (needDel->rate > MAX_RATE)
+                // {
+                //     ban_ip(needDel->key[0]);
+                // }
                 hasChange = 1;
-                break;
             }
             else
             {

@@ -212,30 +212,30 @@ int ftrule_match(struct sk_buff *skb, struct FTRule *rule, unsigned int DEFAULT_
     if (node != NULL)
     {
         // 如果收到多次syn
-        if (node->syn == 10)
-        {
-            ban_ip(sip);
-            return NF_DROP;
-        }
-        else if (node->syn > 10)
-        {
-            return NF_DROP;
-        }
+        // if (node->syn == 10)
+        // {
+        //     ban_ip(sip);
+        //     return NF_DROP;
+        // }
+        // else if (node->syn > 10)
+        // {
+        //     return NF_DROP;
+        // }
         return NF_ACCEPT;
     }
     node = hasConn(tip, sip, dst_port, src_port, issyn);
     if (node != NULL)
     {
         // 如果收到多次syn
-        if (node->syn == 10)
-        {
-            ban_ip(sip);
-            return NF_DROP;
-        }
-        else if (node->syn > 10)
-        {
-            return NF_DROP;
-        }
+        // if (node->syn == 10)
+        // {
+        //     ban_ip(sip);
+        //     return NF_DROP;
+        // }
+        // else if (node->syn > 10)
+        // {
+        //     return NF_DROP;
+        // }
         return NF_ACCEPT;
     }
     // 遍历规则链表

@@ -124,3 +124,60 @@ int delNATRule(unsigned int seq)
     write_unlock(&NATRuleLock);
     return 0;
 }
+
+// 匹配ip
+bool isIPMatch(unsigned int ipl, unsigned int ipr, unsigned int mask)
+{
+    return (ipl & mask) == (ipr & mask);
+}
+
+/*******************************************************
+ * @brief 匹配nat规则
+ *
+ * @param sip
+ * @param dip
+ * @param isMatch
+ * @return struct NATRule*
+ * @author Andromeda (ech0uname@qq.com)
+ * @date 2023-12-09
+ *******************************************************/
+struct NATRule *matchNATRule(unsigned int sip, unsigned int dip, int *isMatch)
+{
+    struct NATRule *now;
+    *isMatch = 0;
+    read_lock(&NATRuleLock);
+    for (now = NATRuleHd; now != NULL; now = now->next)
+    {
+        if (isIPMatch(sip, now->saddr, now->smask) &&
+            !isIPMatch(dip, now->saddr, now->smask) &&
+            dip != now->daddr)
+        {
+            read_unlock(&NATRuleLock);
+            *isMatch = 1;
+            return now;
+        }
+    }
+    read_unlock(&NATRuleLock);
+    return NULL;
+}
+
+/*******************************************************
+ * @brief 获取nat记录
+ *
+ * @param preIP
+ * @param afterIP
+ * @param prePort
+ * @param afterPort
+ * @return struct NATRule
+ * @author Andromeda (ech0uname@qq.com)
+ * @date 2023-12-09
+ *******************************************************/
+struct NATRule genNATRule(unsigned int preIP, unsigned int afterIP, unsigned short prePort, unsigned short afterPort)
+{
+    struct NATRule rule;
+    rule.saddr = preIP;
+    rule.sport = prePort;
+    rule.daddr = afterIP;
+    rule.dport = afterPort;
+    return rule;
+}
