@@ -18,7 +18,7 @@ static struct nf_hook_ops NF_HKLocalIn;
 static struct nf_hook_ops NF_HKLocalOut;
 static struct nf_hook_ops NF_HKPreRouting;
 static struct nf_hook_ops NF_HKPreRouting2;
-static struct nf_hook_ops NF_HKForward;
+// static struct nf_hook_ops NF_HKForward;
 static struct nf_hook_ops NF_HKPostRouting;
 static struct nf_hook_ops NF_HKPostRouting2;
 

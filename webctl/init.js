@@ -58,6 +58,54 @@ function initFilterRules() {
   });
 }
 
+
+function initNATRules() {
+  let sql = "SELECT * FROM t_nat_rules";
+  conf.pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    // 执行sql语句
+    connection.query(sql, [], function (err, result) {
+      // 如果有错误，则输出错误信息
+      if (err) {
+        console.log(err);
+        res.send({ code: conf.ERROR_SERVER, msg: "服务器异常" });
+      } else {
+        // 如果没有错误，则输出查询结果
+        if (result.length > 0) {
+          // 遍历数据库查询结果
+          for (let i = 0; i < result.length; i++) {
+            let cmd =
+              "../main nat add -si " +
+              result[i].src_ip +
+              " -ti " +
+              result[i].dst_ip +
+              " -tp " +
+              result[i].min_port +
+              "-" +
+              result[i].max_port;
+            exec(cmd, (error, stdout, stderr) => {
+              if (error) {
+                console.log("执行命令发生错误：" + error.message);
+                return;
+              }
+              if (stderr) {
+                console.log(stderr);
+                return;
+              }
+              console.log(stdout);
+            });
+          }
+        }
+      }
+    });
+    // 释放连接
+    connection.release();
+  });
+}
+
 function initDefaultAct() {
   conf.pool.getConnection((err, connection) => {
     if (err) {
@@ -99,5 +147,6 @@ function initDefaultAct() {
 
 module.exports = {
   initFilterRules: initFilterRules,
-  initDefaultAct: initDefaultAct
+  initDefaultAct: initDefaultAct,
+  initNATRules: initNATRules
 }
