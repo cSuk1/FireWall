@@ -4,5 +4,6 @@ sudo make clean
 sudo make
 sudo make install
 cd ./webctl
+npm install
 node app.js
 

@@ -2,6 +2,38 @@
 
 [toc]
 
+## 部署方式
+
+- 操作系统：Linux 5.15.0-89-generic #99~20.04.1-Ubuntu SMP Thu Nov 2 15:16:47 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
+- C 编译器：gcc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+- 构建工具：GNU Make 4.2.1
+- Node 运行环境：node v10.19.0
+- 数据库 MySQL 8.0
+
+初次启动，运行根目录下的 `make.sh`
+
+```bash
+#!/bin/bash
+sudo rmmod firewall
+sudo make clean
+sudo make
+sudo make install
+cd ./webctl
+npm install
+node app.js
+```
+
+后续启动运行根目录下的 `build.sh`
+
+```bash
+#!/bin/bash
+sudo rmmod firewall
+sudo make
+sudo make install
+cd ./webctl
+node app.js
+```
+
 ## 功能完成
 
 - [x] 用户层
@@ -16,8 +48,6 @@
 - [x] NAT web 面板
 - [ ] 日志记录
 - [ ] 日志审计 web 面板
-
-## 立项意义
 
 ## 项目概要
 
@@ -61,6 +91,7 @@
 - C 编译器：gcc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
 - 构建工具：GNU Make 4.2.1
 - Node 运行环境：node v10.19.0
+- 数据库 MySQL 8.0
 - 开发工具：visual studio code 1.85.0
 
 ## 详细设计
@@ -400,13 +431,41 @@ email：字符串类型的列，表示电子邮件。
 
 #### 后台接口编写
 
+关键依赖
+
+1. **Node.js**：基于 Chrome V8 引擎的 JavaScript 运行环境，用于构建服务器端应用程序
+2. **Express.js**：基于 Node.js 的 web 应用框架，用于构建 web 应用
+3. **JWT (JSON Web Tokens)**：这是一种用于身份验证和信息交换的开放标准
+4. **MySQL**：用于存储和检索数据
+5. **body-parser**：用于解析 HTTP 请求体
+6. **cookie-parser**：用于解析 HTTP 请求中的 cookie
+7. **crypto**：用于加密和解密数据
+8. **child_process**：用于新建和控制子进程
+
 ##### Filter Rules
+
+在该模块中定义了两个函数：insertFilterRule 和 delFilterRule，分别用于向 MySQL 数据库中插入和删除过滤规则。通过定义几个用于管理过滤规则的路由。
+
+- /filter_manager/add 路由下处理添加新过滤规则的请求，先对身份令牌进行验证，之后调用 exec 执行命令将规则添加到服务器成功之后就会将过滤规则插入到 MySQL 数据库中。
+- 在/filter_manager/getall 路由下处理从数据库中检索所有过滤规则并将检索的数据通过 JSON 格式响应发送。
+- 在/filter_manager/del 路由下处理删除过滤规则的请求，同 add 操作类似，先执行命令从服务器将规则删除，成功之后就从 MySQL 数据库中删除规则。
+- 在/filter_manager/setact 路由下处理通过在服务器上执行命令来更新 MySQL 数据库中的响应值设置默认过滤规则。
+
+在 filter_manager/getact 路由下从 MySQL 数据库中检索当前默认的过滤规则。
 
 ##### Default Policy
 
+在/filter_manager/setact 路由下处理设置默认策略的请求，先对身份令牌进行验证后，根据获取到的请求参数中的 act 值来分别执行不同的策略，即默认拒绝策略或默认通过策略
+
+在/filter_manager/getact 路由下处理获取当前默认策略的请求，通过 SQL 语句获取 t_act 表中的关于规则的前 100 条数据，并将获取到的数据通过 JSON 发送到前端页面
+
 ##### Connections
 
+该模块是一个连接管理模块，创建了路由对象 conn_manager 且定义了一个 GET 请求的路由处理函数用于调用系统程序获取并返回连接信息，包括连接数和每个连接的详细信息。
+
 ##### NAT Rules
+
+这个模块实现的是对过滤规则的管理。创建了 nat_manager 路由对象， 在定义的 insertNATRule 函数中，向数据库中插入过滤规则。在定义的 delNATRule 函数中，向数据库中删除过滤规则。之后我们在后面的添加过滤规则、获取所有过滤规则和删除过滤规则的路由处理函数内部，都先获取到请求中 token 值，对其有效性进行验证，如果验证失败就重定向到登录页面。否则获取请求中的规则编号，并执行相应的命令，如果执行失败则输出错误信息，并响应服务器异常，否则就分别调用 insertNATRule、delNATRule 函数或者执行 MySQL 查询语句，分别完成插入、查询和删除功能。
 
 ## 项目测试
 
@@ -525,5 +584,3 @@ NAT 规则管理页面，可以实现 NAT 记录的增删查
 检查连接会话表，发现添加了两条 ICMP 协议的连接，`从真正的源主机 192.168.18.128 到真正的目的主机 192.168.5.128 `的正向连接和 `从外网主机 192.168.5.128 到防火墙 192.168.5.129 的反向连接`。
 
 ![1702899151217](README/1702899151217.png)
-
-## 心得体会
