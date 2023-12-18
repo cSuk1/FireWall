@@ -79,9 +79,9 @@ function initNATRules() {
           for (let i = 0; i < result.length; i++) {
             let cmd =
               "../main nat add -si " +
-              result[i].src_ip +
+              result[i].bf_ip +
               " -ti " +
-              result[i].dst_ip +
+              result[i].af_ip +
               " -tp " +
               result[i].min_port +
               "-" +
