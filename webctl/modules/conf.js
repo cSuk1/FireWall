@@ -10,7 +10,7 @@ const pool = mysql.createPool({
 });
 
 // 密钥
-let key = "e0b6d6e8e7efce81d8a2b91b4f7b2d3c8f1c9e6b9a1d9e7f6a9a5b8c4d7f3d5a";
+let key = "";
 let LOGIIN_SUCCESS = 10000;
 // 登录成功
 let LOGIIN_FAIL = 10001;
